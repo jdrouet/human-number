@@ -26,6 +26,20 @@ const POSITIVE_SI_SCALE: [Scale<'static>; 10] = [
 ];
 pub const SI_SCALE: Scales<'static, 10, 10> = Scales::new(NEGATIVE_SI_SCALE, POSITIVE_SI_SCALE);
 
+const POSITIVE_BINARY_SCALE: [Scale<'static>; 10] = [
+    Scale::new(1024.0, Cow::Borrowed("ki")),
+    Scale::new(1048576.0, Cow::Borrowed("Mi")),
+    Scale::new(1073741824.0, Cow::Borrowed("Gi")),
+    Scale::new(1099511627776.0, Cow::Borrowed("Ti")),
+    Scale::new(1125899906842624.0, Cow::Borrowed("Pi")),
+    Scale::new(1152921504606846976.0, Cow::Borrowed("Ei")),
+    Scale::new(1180591620717411303424.0, Cow::Borrowed("Zi")),
+    Scale::new(1208925819614629174706176.0, Cow::Borrowed("Yi")),
+    Scale::new(1237940039285380274899124224.0, Cow::Borrowed("Ri")),
+    Scale::new(1267650600228229401496703205376.0, Cow::Borrowed("Qi")),
+];
+pub const BINARY_SCALE: Scales<'static, 0, 10> = Scales::new([], POSITIVE_BINARY_SCALE);
+
 #[derive(Debug, Clone)]
 pub struct Scale<'a> {
     factor: f64,
@@ -167,6 +181,15 @@ impl Formatter<'static, 10, 10> {
     }
 }
 
+impl Formatter<'static, 0, 10> {
+    pub fn binary() -> Self {
+        Formatter {
+            scales: BINARY_SCALE,
+            options: Options::<'static>::default(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,6 +215,24 @@ mod tests {
     #[test_case::test_case(5_432_100.0, "5.43 Mg"; "should format big number")]
     fn format_si_values_with_unit(value: f64, expected: &'static str) {
         let formatter = Formatter::si().with_unit("g");
+        let result = format!("{}", formatter.format(value));
+        assert_eq!(result, expected);
+    }
+
+    #[test_case::test_case(100.0, "100.00"; "should number")]
+    #[test_case::test_case(4096.0, "4.00 ki"; "should format kilo number")]
+    #[test_case::test_case(4194304.0, "4.00 Mi"; "should format mega number")]
+    fn format_binary_values_without_unit(value: f64, expected: &'static str) {
+        let formatter = Formatter::binary();
+        let result = format!("{}", formatter.format(value));
+        assert_eq!(result, expected);
+    }
+
+    #[test_case::test_case(100.0, "100.00 B"; "should number")]
+    #[test_case::test_case(4096.0, "4.00 kiB"; "should format kilo number")]
+    #[test_case::test_case(4194304.0, "4.00 MiB"; "should format mega number")]
+    fn format_binary_values_with_unit(value: f64, expected: &'static str) {
+        let formatter = Formatter::binary().with_unit("B");
         let result = format!("{}", formatter.format(value));
         assert_eq!(result, expected);
     }
