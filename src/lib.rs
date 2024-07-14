@@ -99,7 +99,7 @@ impl<'a, const N: usize, const P: usize> Scales<'a, N, P> {
         if let Some(scale) = self.get_scale(value) {
             ScaledValue {
                 value: value / scale.factor,
-                scale: Some(&scale),
+                scale: Some(scale),
                 options,
             }
         } else {

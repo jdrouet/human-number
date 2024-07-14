@@ -9,7 +9,6 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "pretty-number"
 path = "src/lib.rs"
 
 [dependencies]
