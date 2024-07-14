@@ -1,7 +1,16 @@
 [package]
 name = "pretty-number"
+description = "A library to format numbers in a pretty way."
+authors = ["Jeremie Drouet <jeremie.drouet@gmail.com>"]
+keywords = ["numbers", "formatting", "filesize", "human", "magnitude"]
+categories = ["value-formatting"]
+repository = "https://github.com/jdrouet/pretty-number"
 version = "0.1.0"
 edition = "2021"
+
+[lib]
+name = "pretty-number"
+path = "src/lib.rs"
 
 [dependencies]
 
