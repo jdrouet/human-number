@@ -122,13 +122,13 @@ impl<'a> std::fmt::Display for ScaledValue<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:.width$}", self.value, width = self.options.decimals)?;
         if self.scale.is_some() || self.options.unit.is_some() {
-            write!(f, "{}", self.options.separator)?;
+            f.write_str(self.options.separator.as_ref())?;
         }
         if let Some(scale) = self.scale {
-            write!(f, "{}", scale.prefix)?;
+            f.write_str(scale.prefix.as_ref())?;
         }
         if let Some(ref unit) = self.options.unit {
-            write!(f, "{}", unit)?;
+            f.write_str(unit.as_ref())?;
         }
         Ok(())
     }
@@ -163,6 +163,11 @@ impl<'a, const N: usize, const P: usize> Formatter<'a, N, P> {
 
     pub fn with_unit<U: Into<Cow<'a, str>>>(mut self, unit: U) -> Self {
         self.options.unit = Some(unit.into());
+        self
+    }
+
+    pub fn with_separator<U: Into<Cow<'a, str>>>(mut self, separator: U) -> Self {
+        self.options.separator = separator.into();
         self
     }
 
