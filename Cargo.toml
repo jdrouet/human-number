@@ -1,5 +1,5 @@
 [package]
-name = "pretty-number"
+name = "human-number"
 description = "A library to format numbers in a pretty way."
 authors = ["Jeremie Drouet <jeremie.drouet@gmail.com>"]
 keywords = ["numbers", "formatting", "filesize", "human", "magnitude"]

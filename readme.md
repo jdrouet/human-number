@@ -1,4 +1,4 @@
-# Pretty Number
+# Human Number
 
 This library is just made to format numbers in a pretty human readable way.
 
