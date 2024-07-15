@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-const NEGATIVE_SI_SCALE: &'static [Scale<'static>] = &[
+const NEGATIVE_SI_SCALE: &[Scale<'static>] = &[
     Scale::new(1.0e-03, Cow::Borrowed("m")),
     Scale::new(1.0e-06, Cow::Borrowed("μ")),
     Scale::new(1.0e-09, Cow::Borrowed("n")),
@@ -26,7 +26,7 @@ const POSITIVE_SI_SCALE: &[Scale<'static>] = &[
 ];
 pub const SI_SCALE: Scales<'static> = Scales::new(NEGATIVE_SI_SCALE, POSITIVE_SI_SCALE);
 
-const POSITIVE_BINARY_SCALE: &'static [Scale<'static>] = &[
+const POSITIVE_BINARY_SCALE: &[Scale<'static>] = &[
     Scale::new(1024.0, Cow::Borrowed("ki")),
     Scale::new(1048576.0, Cow::Borrowed("Mi")),
     Scale::new(1073741824.0, Cow::Borrowed("Gi")),
