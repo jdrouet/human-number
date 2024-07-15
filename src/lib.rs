@@ -360,4 +360,21 @@ mod tests {
         let result = format!("{}", formatter.format(value));
         assert_eq!(result, expected);
     }
+
+    #[test]
+    fn format_with_non_static() {
+        let negatives = vec![Scale::new(0.000_001, String::from("x").into())];
+        let positives = vec![Scale::new(1_000.0, String::from("k").into())];
+        let scales: Scales = Scales::new(&negatives, &positives);
+        let options = Options::default()
+            .with_unit("🦀")
+            .with_separator("")
+            .with_decimals(1);
+        let formatter = Formatter::new(scales, options);
+        assert_eq!(format!("{}", formatter.format(1_234.567)), "1.2k🦀");
+        assert_eq!(
+            format!("{}", formatter.format(0.000_012_345_678)),
+            "12.3x🦀"
+        );
+    }
 }
