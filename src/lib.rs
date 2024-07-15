@@ -161,13 +161,23 @@ impl<'a> Formatter<'a> {
         Self { scales, options }
     }
 
-    pub fn with_unit<U: Into<Cow<'a, str>>>(mut self, unit: U) -> Self {
+    #[inline]
+    pub fn set_unit<U: Into<Cow<'a, str>>>(&mut self, unit: U) {
         self.options.unit = Some(unit.into());
+    }
+
+    pub fn with_unit<U: Into<Cow<'a, str>>>(mut self, unit: U) -> Self {
+        self.set_unit(unit);
         self
     }
 
-    pub fn with_separator<U: Into<Cow<'a, str>>>(mut self, separator: U) -> Self {
+    #[inline]
+    pub fn set_separator<U: Into<Cow<'a, str>>>(&mut self, separator: U) {
         self.options.separator = separator.into();
+    }
+
+    pub fn with_separator<U: Into<Cow<'a, str>>>(mut self, separator: U) -> Self {
+        self.set_separator(separator);
         self
     }
 
