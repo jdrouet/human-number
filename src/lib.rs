@@ -120,7 +120,11 @@ pub struct ScaledValue<'a> {
 
 impl<'a> std::fmt::Display for ScaledValue<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:.width$}", self.value, width = self.options.decimals)?;
+        if self.options.force_sign {
+            write!(f, "{:+.width$}", self.value, width = self.options.decimals)?;
+        } else {
+            write!(f, "{:.width$}", self.value, width = self.options.decimals)?;
+        }
         if self.scale.is_some() || self.options.unit.is_some() {
             f.write_str(self.options.separator.as_ref())?;
         }
@@ -139,6 +143,7 @@ pub struct Options<'a> {
     decimals: usize,
     separator: Cow<'a, str>,
     unit: Option<Cow<'a, str>>,
+    force_sign: bool,
 }
 
 impl<'a> Default for Options<'a> {
@@ -147,6 +152,7 @@ impl<'a> Default for Options<'a> {
             decimals: 2,
             separator: Cow::Borrowed(" "),
             unit: None,
+            force_sign: false,
         }
     }
 }
@@ -157,7 +163,20 @@ impl<'a> Options<'a> {
             decimals,
             separator,
             unit,
+            force_sign: false,
         }
+    }
+
+    /// Forces the sign to be displayed.
+    #[inline]
+    pub fn set_force_sign(&mut self, force_sign: bool) {
+        self.force_sign = force_sign;
+    }
+
+    /// Forces the sign to be displayed.
+    pub const fn with_force_sign(mut self, force_sign: bool) -> Self {
+        self.force_sign = force_sign;
+        self
     }
 
     /// Sets the number of decimals to display.
@@ -167,8 +186,8 @@ impl<'a> Options<'a> {
     }
 
     /// Sets the number of decimals to display.
-    pub fn with_decimals(mut self, decimals: usize) -> Self {
-        self.set_decimals(decimals);
+    pub const fn with_decimals(mut self, decimals: usize) -> Self {
+        self.decimals = decimals;
         self
     }
 
@@ -211,6 +230,18 @@ impl<'a> Formatter<'a> {
         Self { scales, options }
     }
 
+    /// Forces the sign to be displayed.
+    #[inline]
+    pub fn set_force_sign(&mut self, force_sign: bool) {
+        self.options.set_force_sign(force_sign);
+    }
+
+    /// Forces the sign to be displayed.
+    pub fn with_force_sign(mut self, force_sign: bool) -> Self {
+        self.options.set_force_sign(force_sign);
+        self
+    }
+
     /// Sets the number of decimals to display.
     #[inline]
     pub fn set_decimals(&mut self, decimals: usize) {
@@ -219,7 +250,7 @@ impl<'a> Formatter<'a> {
 
     /// Sets the number of decimals to display.
     pub fn with_decimals(mut self, decimals: usize) -> Self {
-        self.set_decimals(decimals);
+        self.options.set_decimals(decimals);
         self
     }
 
@@ -231,7 +262,7 @@ impl<'a> Formatter<'a> {
 
     /// Sets the expected unit, like `B` for bytes or `g` for grams.
     pub fn with_unit<U: Into<Cow<'a, str>>>(mut self, unit: U) -> Self {
-        self.set_unit(unit);
+        self.options.set_unit(unit);
         self
     }
 
@@ -243,7 +274,7 @@ impl<'a> Formatter<'a> {
 
     /// Sets the separator between the number and the preffix.
     pub fn with_separator<U: Into<Cow<'a, str>>>(mut self, separator: U) -> Self {
-        self.set_separator(separator);
+        self.options.set_separator(separator);
         self
     }
 
@@ -359,6 +390,15 @@ mod tests {
         let formatter = Formatter::binary().with_unit("B");
         let result = format!("{}", formatter.format(value));
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn format_with_sign() {
+        let scales: Scales = Scales::new(&[], &[]);
+        let options = Options::default().with_force_sign(true);
+        let formatter = Formatter::new(scales, options);
+        assert_eq!(format!("{}", formatter.format(-1.0)), "-1.00");
+        assert_eq!(format!("{}", formatter.format(1.0)), "+1.00");
     }
 
     #[test]
