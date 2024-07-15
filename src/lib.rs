@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-const NEGATIVE_SI_SCALE: [Scale<'static>; 10] = [
+const NEGATIVE_SI_SCALE: &'static [Scale<'static>] = &[
     Scale::new(1.0e-03, Cow::Borrowed("m")),
     Scale::new(1.0e-06, Cow::Borrowed("μ")),
     Scale::new(1.0e-09, Cow::Borrowed("n")),
@@ -12,7 +12,7 @@ const NEGATIVE_SI_SCALE: [Scale<'static>; 10] = [
     Scale::new(1.0e-27, Cow::Borrowed("r")),
     Scale::new(1.0e-30, Cow::Borrowed("q")),
 ];
-const POSITIVE_SI_SCALE: [Scale<'static>; 10] = [
+const POSITIVE_SI_SCALE: &[Scale<'static>] = &[
     Scale::new(1.0e+03, Cow::Borrowed("k")),
     Scale::new(1.0e+06, Cow::Borrowed("M")),
     Scale::new(1.0e+09, Cow::Borrowed("G")),
@@ -24,9 +24,9 @@ const POSITIVE_SI_SCALE: [Scale<'static>; 10] = [
     Scale::new(1.0e+27, Cow::Borrowed("R")),
     Scale::new(1.0e+30, Cow::Borrowed("Q")),
 ];
-pub const SI_SCALE: Scales<'static, 10, 10> = Scales::new(NEGATIVE_SI_SCALE, POSITIVE_SI_SCALE);
+pub const SI_SCALE: Scales<'static> = Scales::new(NEGATIVE_SI_SCALE, POSITIVE_SI_SCALE);
 
-const POSITIVE_BINARY_SCALE: [Scale<'static>; 10] = [
+const POSITIVE_BINARY_SCALE: &'static [Scale<'static>] = &[
     Scale::new(1024.0, Cow::Borrowed("ki")),
     Scale::new(1048576.0, Cow::Borrowed("Mi")),
     Scale::new(1073741824.0, Cow::Borrowed("Gi")),
@@ -38,7 +38,7 @@ const POSITIVE_BINARY_SCALE: [Scale<'static>; 10] = [
     Scale::new(1237940039285380274899124224.0, Cow::Borrowed("Ri")),
     Scale::new(1267650600228229401496703205376.0, Cow::Borrowed("Qi")),
 ];
-pub const BINARY_SCALE: Scales<'static, 0, 10> = Scales::new([], POSITIVE_BINARY_SCALE);
+pub const BINARY_SCALE: Scales<'static> = Scales::new(&[], POSITIVE_BINARY_SCALE);
 
 #[derive(Debug, Clone)]
 pub struct Scale<'a> {
@@ -53,13 +53,13 @@ impl<'a> Scale<'a> {
     }
 }
 
-pub struct Scales<'a, const N: usize, const P: usize> {
-    negatives: [Scale<'a>; N],
-    positives: [Scale<'a>; P],
+pub struct Scales<'a> {
+    negatives: &'a [Scale<'a>],
+    positives: &'a [Scale<'a>],
 }
 
-impl<'a, const N: usize, const P: usize> Scales<'a, N, P> {
-    pub const fn new(negatives: [Scale<'a>; N], positives: [Scale<'a>; P]) -> Self {
+impl<'a> Scales<'a> {
+    pub const fn new(negatives: &'a [Scale<'a>], positives: &'a [Scale<'a>]) -> Self {
         Self {
             negatives,
             positives,
@@ -150,14 +150,14 @@ impl<'a> Default for Options<'a> {
     }
 }
 
-pub struct Formatter<'a, const N: usize, const P: usize> {
-    scales: Scales<'a, N, P>,
+pub struct Formatter<'a> {
+    scales: Scales<'a>,
     options: Options<'a>,
 }
 
-impl<'a, const N: usize, const P: usize> Formatter<'a, N, P> {
+impl<'a> Formatter<'a> {
     #[inline]
-    pub fn new(scales: Scales<'a, N, P>, options: Options<'a>) -> Self {
+    pub fn new(scales: Scales<'a>, options: Options<'a>) -> Self {
         Self { scales, options }
     }
 
@@ -177,16 +177,14 @@ impl<'a, const N: usize, const P: usize> Formatter<'a, N, P> {
     }
 }
 
-impl Formatter<'static, 10, 10> {
+impl Formatter<'static> {
     pub fn si() -> Self {
         Formatter {
             scales: SI_SCALE,
             options: Options::<'static>::default(),
         }
     }
-}
 
-impl Formatter<'static, 0, 10> {
     pub fn binary() -> Self {
         Formatter {
             scales: BINARY_SCALE,
