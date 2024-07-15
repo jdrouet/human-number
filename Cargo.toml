@@ -6,7 +6,7 @@ keywords = ["numbers", "formatting", "filesize", "human", "magnitude"]
 categories = ["value-formatting"]
 repository = "https://github.com/jdrouet/pretty-number"
 license = "MIT"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [lib]
