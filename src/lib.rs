@@ -134,6 +134,7 @@ impl<'a> std::fmt::Display for ScaledValue<'a> {
     }
 }
 
+/// Set of options used for formating numbers.
 pub struct Options<'a> {
     decimals: usize,
     separator: Cow<'a, str>,
@@ -150,37 +151,103 @@ impl<'a> Default for Options<'a> {
     }
 }
 
+impl<'a> Options<'a> {
+    pub const fn new(decimals: usize, separator: Cow<'a, str>, unit: Option<Cow<'a, str>>) -> Self {
+        Self {
+            decimals,
+            separator,
+            unit,
+        }
+    }
+
+    /// Sets the number of decimals to display.
+    #[inline]
+    pub fn set_decimals(&mut self, decimals: usize) {
+        self.decimals = decimals;
+    }
+
+    /// Sets the number of decimals to display.
+    pub fn with_decimals(mut self, decimals: usize) -> Self {
+        self.set_decimals(decimals);
+        self
+    }
+
+    /// Sets the expected unit, like `B` for bytes or `g` for grams.
+    #[inline]
+    pub fn set_unit<U: Into<Cow<'a, str>>>(&mut self, unit: U) {
+        self.unit = Some(unit.into());
+    }
+
+    /// Sets the expected unit, like `B` for bytes or `g` for grams.
+    pub fn with_unit<U: Into<Cow<'a, str>>>(mut self, unit: U) -> Self {
+        self.set_unit(unit);
+        self
+    }
+
+    /// Sets the separator between the number and the preffix.
+    #[inline]
+    pub fn set_separator<U: Into<Cow<'a, str>>>(&mut self, separator: U) {
+        self.separator = separator.into();
+    }
+
+    /// Sets the separator between the number and the preffix.
+    pub fn with_separator<U: Into<Cow<'a, str>>>(mut self, separator: U) -> Self {
+        self.set_separator(separator);
+        self
+    }
+}
+
+/// Structure containing options and scales used to format numbers
+/// with the right scale preffix, separators and units.
 pub struct Formatter<'a> {
     scales: Scales<'a>,
     options: Options<'a>,
 }
 
 impl<'a> Formatter<'a> {
+    /// Create a formatter with a given scale set and some options
     #[inline]
     pub fn new(scales: Scales<'a>, options: Options<'a>) -> Self {
         Self { scales, options }
     }
 
+    /// Sets the number of decimals to display.
+    #[inline]
+    pub fn set_decimals(&mut self, decimals: usize) {
+        self.options.decimals = decimals;
+    }
+
+    /// Sets the number of decimals to display.
+    pub fn with_decimals(mut self, decimals: usize) -> Self {
+        self.set_decimals(decimals);
+        self
+    }
+
+    /// Sets the expected unit, like `B` for bytes or `g` for grams.
     #[inline]
     pub fn set_unit<U: Into<Cow<'a, str>>>(&mut self, unit: U) {
         self.options.unit = Some(unit.into());
     }
 
+    /// Sets the expected unit, like `B` for bytes or `g` for grams.
     pub fn with_unit<U: Into<Cow<'a, str>>>(mut self, unit: U) -> Self {
         self.set_unit(unit);
         self
     }
 
+    /// Sets the separator between the number and the preffix.
     #[inline]
     pub fn set_separator<U: Into<Cow<'a, str>>>(&mut self, separator: U) {
         self.options.separator = separator.into();
     }
 
+    /// Sets the separator between the number and the preffix.
     pub fn with_separator<U: Into<Cow<'a, str>>>(mut self, separator: U) -> Self {
         self.set_separator(separator);
         self
     }
 
+    /// Formats a number and returns a scaled value that can be displayed.
     #[inline]
     pub fn format(&'a self, value: f64) -> ScaledValue<'a> {
         self.scales.into_scaled(&self.options, value)
@@ -188,6 +255,23 @@ impl<'a> Formatter<'a> {
 }
 
 impl Formatter<'static> {
+    /// Formatter that uses the SI format style
+    ///
+    /// ```rust
+    /// use human_number::Formatter;
+    ///
+    /// let formatter = Formatter::si();
+    /// let result = format!("{}", formatter.format(4_234.0));
+    /// assert_eq!(result, "4.23 k");
+    /// let result = format!("{}", formatter.format(0.012_34));
+    /// assert_eq!(result, "12.34 m");
+    ///
+    /// let formatter = Formatter::si().with_unit("g").with_separator("").with_decimals(1);
+    /// let result = format!("{}", formatter.format(4_234.0));
+    /// assert_eq!(result, "4.2kg");
+    /// let result = format!("{}", formatter.format(0.012_34));
+    /// assert_eq!(result, "12.3mg");
+    /// ```
     pub fn si() -> Self {
         Formatter {
             scales: SI_SCALE,
@@ -195,6 +279,15 @@ impl Formatter<'static> {
         }
     }
 
+    /// Formatter that uses the binary format style
+    ///
+    /// ```rust
+    /// use human_number::Formatter;
+    ///
+    /// let formatter = Formatter::binary().with_unit("B");
+    /// let result = format!("{}", formatter.format(4_320_133.0));
+    /// assert_eq!(result, "4.12 MiB");
+    /// ```
     pub fn binary() -> Self {
         Formatter {
             scales: BINARY_SCALE,
@@ -212,6 +305,24 @@ mod tests {
         assert!(SI_SCALE.get_scale(1.0).is_none());
         assert_eq!(SI_SCALE.get_scale(1000.0).unwrap().prefix, "k");
         assert_eq!(SI_SCALE.get_scale(0.10).unwrap().prefix, "m");
+    }
+
+    #[test_case::test_case(0.005, "5.000 m"; "should small number")]
+    #[test_case::test_case(100.0, "100.000"; "should number")]
+    #[test_case::test_case(5_432_100.0, "5.432 M"; "should format big number")]
+    fn format_si_values_with_decimals(value: f64, expected: &'static str) {
+        let formatter = Formatter::si().with_decimals(3);
+        let result = format!("{}", formatter.format(value));
+        assert_eq!(result, expected);
+    }
+
+    #[test_case::test_case(0.005, "5.00🦀m"; "should small number")]
+    #[test_case::test_case(100.0, "100.00"; "should number")]
+    #[test_case::test_case(5_432_100.0, "5.43🦀M"; "should format big number")]
+    fn format_si_values_with_separator(value: f64, expected: &'static str) {
+        let formatter = Formatter::si().with_separator("🦀");
+        let result = format!("{}", formatter.format(value));
+        assert_eq!(result, expected);
     }
 
     #[test_case::test_case(0.005, "5.00 m"; "should small number")]
