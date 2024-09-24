@@ -60,6 +60,10 @@ pub struct Scales<'a> {
 }
 
 impl<'a> Scales<'a> {
+    pub const fn empty() -> Self {
+        Self::new(&[], &[])
+    }
+
     pub const fn new(negatives: &'a [Scale<'a>], positives: &'a [Scale<'a>]) -> Self {
         Self {
             negatives,
@@ -326,6 +330,26 @@ impl Formatter<'static> {
     pub fn binary() -> Self {
         Formatter {
             scales: BINARY_SCALE,
+            options: Options::<'static>::default(),
+        }
+    }
+
+    /// Formatter that doesn't use a scale
+    ///
+    /// ```rust
+    /// use human_number::Formatter;
+    ///
+    /// let formatter = Formatter::empty();
+    /// let result = format!("{}", formatter.format(25_000.0));
+    /// assert_eq!(result, "25000.00");
+    ///
+    /// let formatter = Formatter::empty().with_unit("%");
+    /// let result = format!("{}", formatter.format(25.0));
+    /// assert_eq!(result, "25.00 %");
+    /// ```
+    pub fn empty() -> Self {
+        Formatter {
+            scales: Scales::empty(),
             options: Options::<'static>::default(),
         }
     }
