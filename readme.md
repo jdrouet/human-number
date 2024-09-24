@@ -5,7 +5,7 @@ This library is just made to format numbers in a pretty human readable way.
 ## Installation
 
 ```bash
-cargo add pretty-number
+cargo add human-number
 ```
 
 ## Usage
