@@ -40,7 +40,7 @@ const POSITIVE_BINARY_SCALE: &[Scale<'static>] = &[
 ];
 pub const BINARY_SCALE: Scales<'static> = Scales::new(&[], POSITIVE_BINARY_SCALE);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scale<'a> {
     factor: f64,
     prefix: Cow<'a, str>,
@@ -53,7 +53,7 @@ impl<'a> Scale<'a> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Scales<'a> {
     negatives: &'a [Scale<'a>],
     positives: &'a [Scale<'a>],
@@ -145,7 +145,7 @@ impl<'a> std::fmt::Display for ScaledValue<'a> {
 }
 
 /// Set of options used for formating numbers.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Options<'a> {
     decimals: usize,
     separator: Cow<'a, str>,
@@ -225,7 +225,7 @@ impl<'a> Options<'a> {
 
 /// Structure containing options and scales used to format numbers
 /// with the right scale preffix, separators and units.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Formatter<'a> {
     scales: Scales<'a>,
     options: Options<'a>,
