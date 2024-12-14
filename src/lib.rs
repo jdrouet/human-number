@@ -124,7 +124,7 @@ pub struct ScaledValue<'a> {
     options: &'a Options<'a>,
 }
 
-impl<'a> std::fmt::Display for ScaledValue<'a> {
+impl std::fmt::Display for ScaledValue<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.options.force_sign {
             write!(f, "{:+.width$}", self.value, width = self.options.decimals)?;
@@ -153,7 +153,7 @@ pub struct Options<'a> {
     force_sign: bool,
 }
 
-impl<'a> Default for Options<'a> {
+impl Default for Options<'_> {
     fn default() -> Self {
         Self {
             decimals: 2,
